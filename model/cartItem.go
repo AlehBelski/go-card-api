@@ -6,13 +6,3 @@ type CartItem struct {
 	Product  string `json:"product"`
 	Quantity int64  `json:"quantity"`
 }
-
-func NewCartItem() CartItem {
-
-	return CartItem{
-		Id:       0,
-		Card_id:  0,
-		Product:  "",
-		Quantity: 0,
-	}
-}
