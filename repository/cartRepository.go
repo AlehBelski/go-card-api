@@ -6,14 +6,14 @@ import (
 )
 
 type CartRepository interface {
-	Create() (*model.Cart, error)
-	Read(id int) (*model.Cart, error)
-	Update(id int, item *model.CartItem) (*model.CartItem, error)
+	Create() (*model.CartDTO, error)
+	Read(id int) (*model.CartDTO, error)
+	Update(id int, item *model.CartItemDTO) (*model.CartItemDTO, error)
 	Delete(cartId, itemId int) error
 }
 
-func (db *DB) Create() (*model.Cart, error) {
-	cart := &model.Cart{}
+func (db *DB) Create() (*model.CartDTO, error) {
+	cart := &model.CartDTO{}
 
 	query := `
     INSERT INTO cart
@@ -24,12 +24,12 @@ func (db *DB) Create() (*model.Cart, error) {
 	if err != nil {
 		return nil, err
 	}
-	cart.Items = make([]model.CartItem, 0)
+	cart.Items = make([]model.CartItemDTO, 0)
 
 	return cart, nil
 }
 
-func (db *DB) Read(id int) (*model.Cart, error) {
+func (db *DB) Read(id int) (*model.CartDTO, error) {
 	err := db.isCartExists(id)
 
 	if err != nil {
@@ -47,9 +47,9 @@ func (db *DB) Read(id int) (*model.Cart, error) {
 
 	defer rows.Close()
 
-	items := make([]model.CartItem, 0)
+	items := make([]model.CartItemDTO, 0)
 	for rows.Next() {
-		var item model.CartItem
+		var item model.CartItemDTO
 		err := rows.Scan(&item.Id, &item.Product, &item.Quantity, &item.Card_id)
 		if err != nil {
 			return nil, err
@@ -58,12 +58,12 @@ func (db *DB) Read(id int) (*model.Cart, error) {
 		items = append(items, item)
 	}
 
-	cart := &model.Cart{id, items}
+	cart := &model.CartDTO{id, items}
 
 	return cart, nil
 }
 
-func (db *DB) Update(id int, item *model.CartItem) (*model.CartItem, error) {
+func (db *DB) Update(id int, item *model.CartItemDTO) (*model.CartItemDTO, error) {
 	err := db.isCartExists(id)
 
 	if err != nil {

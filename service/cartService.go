@@ -13,16 +13,16 @@ type CartService struct {
 	Rep repository.CartRepository
 }
 
-func (srv CartService) Create() (*model.Cart, error) {
+func (srv CartService) Create() (*model.CartDTO, error) {
 	return srv.Rep.Create()
 }
 
-func (srv CartService) Read(id int) (*model.Cart, error) {
+func (srv CartService) Read(id int) (*model.CartDTO, error) {
 	return srv.Rep.Read(id)
 }
 
-func (srv CartService) Update(id int, body io.ReadCloser) (*model.CartItem, error) {
-	item := &model.CartItem{}
+func (srv CartService) Update(id int, body io.ReadCloser) (*model.CartItemDTO, error) {
+	item := &model.CartItemDTO{}
 
 	err := json.NewDecoder(body).Decode(&item)
 
