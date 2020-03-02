@@ -13,14 +13,18 @@ type CartService struct {
     Rep repository.CartRepository
 }
 
+// Create calls srv.Rep.Create() in order to create a new record in a database.
 func (srv CartService) Create() (*model.CartDTO, error) {
     return srv.Rep.Create()
 }
 
+// Read calls srv.Rep.Read() in order to read a record from a database.
 func (srv CartService) Read(id int) (*model.CartDTO, error) {
     return srv.Rep.Read(id)
 }
 
+// Update calls srv.Rep.Update() in order to update a record in database by passed id using the request body.
+// It returns an error in case of item.Product is blank or item.Quantity is not positive.
 func (srv CartService) Update(id int, body io.ReadCloser) (*model.CartItemDTO, error) {
     item := &model.CartItemDTO{}
 
@@ -41,6 +45,8 @@ func (srv CartService) Update(id int, body io.ReadCloser) (*model.CartItemDTO, e
     return srv.Rep.Update(id, item)
 }
 
+// Delete converts the passed params in order to retrieve cart and item id
+// and calls srv.Rep.Delete to delete the specified record.
 func (srv CartService) Delete(params []string) error {
     cartId, _ := strconv.Atoi(params[2])
     itemId, _ := strconv.Atoi(params[4])

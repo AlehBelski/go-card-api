@@ -9,6 +9,7 @@ type DB struct {
     *sql.DB
 }
 
+// NewDB creates and returns a new database connection using passed username, password, host and db name.
 func NewDB(userName, userPassword, host, dbName string) (*DB, error) {
     dataSource := fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", userName, userPassword, host, dbName)
     db, err := sql.Open("postgres", dataSource)

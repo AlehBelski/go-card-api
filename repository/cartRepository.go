@@ -12,6 +12,8 @@ type CartRepository interface {
     Delete(cartId, itemId int) error
 }
 
+// Create creates a new *model.CartDTO record in a database.
+// It returns the newly created record as *model.CartDTO.
 func (db *DB) Create() (*model.CartDTO, error) {
     cart := &model.CartDTO{}
 
@@ -29,6 +31,7 @@ func (db *DB) Create() (*model.CartDTO, error) {
     return cart, nil
 }
 
+// Read reads a record from the database and returns it as *model.CardDTO.
 func (db *DB) Read(id int) (*model.CartDTO, error) {
     err := db.isCartExists(id)
 
@@ -63,6 +66,8 @@ func (db *DB) Read(id int) (*model.CartDTO, error) {
     return cart, nil
 }
 
+// Update updates a record in the database related to the passed id using passed item.
+// It returns the updated record as *model.CartItemDTO.
 func (db *DB) Update(id int, item *model.CartItemDTO) (*model.CartItemDTO, error) {
     err := db.isCartExists(id)
 
@@ -85,6 +90,7 @@ func (db *DB) Update(id int, item *model.CartItemDTO) (*model.CartItemDTO, error
     return item, nil
 }
 
+// Delete deletes a record from the databases by passed cart and item ids.
 func (db *DB) Delete(cartId, itemId int) error {
     err := db.isCartExists(cartId)
 

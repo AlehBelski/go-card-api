@@ -18,7 +18,7 @@ var Read = regexp.MustCompile("^/carts/[0-9]+/?$")
 var Update = regexp.MustCompile("^/carts/[0-9]+/items/?$")
 var Remove = regexp.MustCompile("^/carts/[0-9]+/items/[0-9]+?$")
 
-//todo add middleware handler to encode
+// HandleCreate handles incoming request to create a new model.CartDTO item and returns it as json string.
 func (c CartController) HandleCreate(writer http.ResponseWriter, request *http.Request) error {
     cart, err := c.Service.Create()
 
@@ -31,6 +31,9 @@ func (c CartController) HandleCreate(writer http.ResponseWriter, request *http.R
     return err
 }
 
+// HandleRead handles incoming request to read a model.CartDTO item.
+// It retrieves the id parameters form the request URI and passed it to the next function.
+// Returns the result as json string.
 func (c CartController) HandleRead(writer http.ResponseWriter, request *http.Request) error {
     id, _ := strconv.Atoi(strings.Split(request.RequestURI, "/")[2])
     cart, err := c.Service.Read(id)
@@ -44,6 +47,9 @@ func (c CartController) HandleRead(writer http.ResponseWriter, request *http.Req
     return err
 }
 
+// HandleUpdate handles incoming request to update a model.CartItemDTO item.
+// It retrieves the id parameters form the request URI and passed it to the next function together with request body.
+// Returns the result as json string.
 func (c CartController) HandleUpdate(writer http.ResponseWriter, request *http.Request) error {
     id, _ := strconv.Atoi(strings.Split(request.RequestURI, "/")[2])
     item, err := c.Service.Update(id, request.Body)
@@ -57,6 +63,7 @@ func (c CartController) HandleUpdate(writer http.ResponseWriter, request *http.R
     return err
 }
 
+// HandleRemove handle incoming request to remove the specified model.CartItemDTO in the model.CartDTO.
 func (c CartController) HandleRemove(writer http.ResponseWriter, request *http.Request) error {
     params := strings.Split(request.RequestURI, "/")
 
