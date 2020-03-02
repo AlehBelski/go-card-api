@@ -1,6 +1,6 @@
 package model
 
 type CartDTO struct {
-	Id    int
-	Items []CartItemDTO
+    Id    int
+    Items []CartItemDTO
 }

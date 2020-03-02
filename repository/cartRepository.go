@@ -1,138 +1,138 @@
 package repository
 
 import (
-	"fmt"
-	"github.com/AlehBelski/go-card-api/model"
+    "fmt"
+    "github.com/AlehBelski/go-card-api/model"
 )
 
 type CartRepository interface {
-	Create() (*model.CartDTO, error)
-	Read(id int) (*model.CartDTO, error)
-	Update(id int, item *model.CartItemDTO) (*model.CartItemDTO, error)
-	Delete(cartId, itemId int) error
+    Create() (*model.CartDTO, error)
+    Read(id int) (*model.CartDTO, error)
+    Update(id int, item *model.CartItemDTO) (*model.CartItemDTO, error)
+    Delete(cartId, itemId int) error
 }
 
 func (db *DB) Create() (*model.CartDTO, error) {
-	cart := &model.CartDTO{}
+    cart := &model.CartDTO{}
 
-	query := `
+    query := `
     INSERT INTO cart
     VALUES(DEFAULT)
     RETURNING id`
 
-	err := db.QueryRow(query).Scan(&cart.Id)
-	if err != nil {
-		return nil, err
-	}
-	cart.Items = make([]model.CartItemDTO, 0)
+    err := db.QueryRow(query).Scan(&cart.Id)
+    if err != nil {
+        return nil, err
+    }
+    cart.Items = make([]model.CartItemDTO, 0)
 
-	return cart, nil
+    return cart, nil
 }
 
 func (db *DB) Read(id int) (*model.CartDTO, error) {
-	err := db.isCartExists(id)
+    err := db.isCartExists(id)
 
-	if err != nil {
-		return nil, err
-	}
+    if err != nil {
+        return nil, err
+    }
 
-	query := `
+    query := `
     SELECT * FROM cart_item
     WHERE fk_cart_id = $1`
-	rows, err := db.Query(query, id)
+    rows, err := db.Query(query, id)
 
-	if err != nil {
-		return nil, err
-	}
+    if err != nil {
+        return nil, err
+    }
 
-	defer rows.Close()
+    defer rows.Close()
 
-	items := make([]model.CartItemDTO, 0)
-	for rows.Next() {
-		var item model.CartItemDTO
-		err := rows.Scan(&item.Id, &item.Product, &item.Quantity, &item.Card_id)
-		if err != nil {
-			return nil, err
-		}
+    items := make([]model.CartItemDTO, 0)
+    for rows.Next() {
+        var item model.CartItemDTO
+        err := rows.Scan(&item.Id, &item.Product, &item.Quantity, &item.Card_id)
+        if err != nil {
+            return nil, err
+        }
 
-		items = append(items, item)
-	}
+        items = append(items, item)
+    }
 
-	cart := &model.CartDTO{id, items}
+    cart := &model.CartDTO{Id: id, Items: items}
 
-	return cart, nil
+    return cart, nil
 }
 
 func (db *DB) Update(id int, item *model.CartItemDTO) (*model.CartItemDTO, error) {
-	err := db.isCartExists(id)
+    err := db.isCartExists(id)
 
-	if err != nil {
-		return nil, err
-	}
+    if err != nil {
+        return nil, err
+    }
 
-	query := `
+    query := `
     INSERT INTO cart_item(product, quantity, fk_cart_id)
     VALUES ($1, $2, $3)
     RETURNING id, fk_cart_id;`
 
-	err = db.QueryRow(query, item.Product, item.Quantity, id).
-		Scan(&item.Id, &item.Card_id)
+    err = db.QueryRow(query, item.Product, item.Quantity, id).
+        Scan(&item.Id, &item.Card_id)
 
-	if err != nil {
-		return nil, err
-	}
+    if err != nil {
+        return nil, err
+    }
 
-	return item, nil
+    return item, nil
 }
 
 func (db *DB) Delete(cartId, itemId int) error {
-	err := db.isCartExists(cartId)
+    err := db.isCartExists(cartId)
 
-	if err != nil {
-		return err
-	}
+    if err != nil {
+        return err
+    }
 
-	err = db.isCartItemExists(itemId)
+    err = db.isCartItemExists(itemId)
 
-	if err != nil {
-		return err
-	}
+    if err != nil {
+        return err
+    }
 
-	query := `
+    query := `
     DELETE FROM cart_item
     WHERE fk_cart_id = $1 AND id = $2`
 
-	db.QueryRow(query, cartId, itemId)
+    db.QueryRow(query, cartId, itemId)
 
-	return nil
+    return nil
 }
 
 func (db *DB) isCartExists(id int) error {
-	query := `
+    query := `
     SELECT 1 FROM cart
     WHERE id = $1`
 
-	var isExist bool
-	err := db.QueryRow(query, id).Scan(&isExist)
+    var isExist bool
+    err := db.QueryRow(query, id).Scan(&isExist)
 
-	if err != nil {
-		return fmt.Errorf("specified cart doesn't exists")
-	}
+    if err != nil {
+        return fmt.Errorf("specified cart doesn't exists")
+    }
 
-	return nil
+    return nil
 }
 
 func (db *DB) isCartItemExists(id int) error {
-	query := `
+    query := `
     SELECT 1 FROM cart_item
     WHERE id = $1`
 
-	var isExist bool
-	err := db.QueryRow(query, id).Scan(&isExist)
+    var isExist bool
+    err := db.QueryRow(query, id).Scan(&isExist)
 
-	if err != nil {
-		return fmt.Errorf("specified cart item doesn't exists")
-	}
+    if err != nil {
+        return fmt.Errorf("specified cart item doesn't exists")
+    }
 
-	return nil
+    return nil
 }
