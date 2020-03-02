@@ -1,6 +1,8 @@
 package main
 
 import (
+    "database/sql"
+    "fmt"
     "github.com/AlehBelski/go-card-api/controller"
     "github.com/AlehBelski/go-card-api/handler"
     "github.com/AlehBelski/go-card-api/repository"
@@ -15,7 +17,7 @@ type Env struct {
 }
 
 func main() {
-    db, err := repository.NewDB("postgres", "postgres", "localhost", "postgres")
+    db, err := newDB("postgres", "postgres", "localhost", "postgres")
     if err != nil {
         panic(err)
     }
@@ -30,6 +32,20 @@ func main() {
         log.Fatalf("not able to start the server: %s", err)
     }
 }
+
+// NewDB creates and returns a new database connection using passed username, password, host and db name.
+func newDB(userName, userPassword, host, dbName string) (*repository.DB, error) {
+    dataSource := fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", userName, userPassword, host, dbName)
+    db, err := sql.Open("postgres", dataSource)
+    if err != nil {
+        return nil, err
+    }
+    if err = db.Ping(); err != nil {
+        return nil, err
+    }
+    return &repository.DB{DB: db}, nil
+}
+
 
 func initDb(db *repository.DB) {
     query := `

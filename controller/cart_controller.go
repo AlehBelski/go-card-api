@@ -19,7 +19,7 @@ var Update = regexp.MustCompile("^/carts/[0-9]+/items/?$")
 var Remove = regexp.MustCompile("^/carts/[0-9]+/items/[0-9]+?$")
 
 // HandleCreate handles incoming request to create a new model.CartDTO item and returns it as json string.
-func (c CartController) HandleCreate(writer http.ResponseWriter, request *http.Request) error {
+func (c CartController) HandleCreate(writer http.ResponseWriter, _ *http.Request) error {
     cart, err := c.Service.Create()
 
     if err != nil {
