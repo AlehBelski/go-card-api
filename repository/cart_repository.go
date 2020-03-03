@@ -1,16 +1,12 @@
 package repository
 
 import (
+    "database/sql"
     "github.com/AlehBelski/go-card-api/model"
 )
 
-type CartRepository interface {
-    Create() (*model.Cart, error)
-    Read(id int) (*model.Cart, error)
-    Update(id int, item *model.CartItem) (*model.CartItem, error)
-    Delete(cartId, itemId int) error
-    IsCartExists(id int) (bool, error)
-    IsCartItemExists(id int) (bool, error)
+type DB struct {
+    *sql.DB
 }
 
 // Create creates a new model.Cart record in a database.
@@ -69,7 +65,7 @@ func (db *DB) Read(id int) (*model.Cart, error) {
 
 // Update updates a record in the database related to the passed id using passed item.
 // It returns the updated record as *model.CartItem.
-func (db *DB) Update(id int, item *model.CartItem) (model.CartItem, error) {
+func (db *DB) Update(id int, item model.CartItem) (model.CartItem, error) {
     cartItem := model.CartItem{}
 
     query := `
@@ -98,6 +94,7 @@ func (db *DB) Delete(cartId, itemId int) error {
     return nil
 }
 
+// IsCardExists verify that a model.Cart object with the specified id presence into a database.
 func (db *DB) IsCartExists(id int) (bool, error) {
     query := `
     SELECT 1 FROM cart
@@ -113,13 +110,14 @@ func (db *DB) IsCartExists(id int) (bool, error) {
     return true, nil
 }
 
-func (db *DB) IsCartItemExists(id int) (bool, error) {
+// IsCardExists verify that a model.CartItem object with the specified cartId and itemId presence into a database.
+func (db *DB) IsCartItemExists(cartId, itemId int) (bool, error) {
     query := `
     SELECT 1 FROM cart_item
-    WHERE id = $1`
+    WHERE fk_cart_id = $1 AND id = $2`
 
     var isExist bool
-    err := db.QueryRow(query, id).Scan(&isExist)
+    err := db.QueryRow(query, cartId, itemId).Scan(&isExist)
 
     if err != nil {
         return false, err

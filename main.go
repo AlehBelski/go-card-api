@@ -4,7 +4,7 @@ import (
     "database/sql"
     "fmt"
     "github.com/AlehBelski/go-card-api/controller"
-    "github.com/AlehBelski/go-card-api/handler"
+    "github.com/AlehBelski/go-card-api/middleware"
     "github.com/AlehBelski/go-card-api/repository"
     "github.com/AlehBelski/go-card-api/service"
     _ "github.com/lib/pq"
@@ -13,7 +13,7 @@ import (
 )
 
 type Env struct {
-    controller *controller.CartController
+    controller controller.CartController
 }
 
 func main() {
@@ -23,17 +23,13 @@ func main() {
     }
     initDb(db)
 
-    env := &Env{&controller.CartController{Service: &service.CartService{Rep: db}}}
+    env := &Env{controller.NewCartController(service.NewCartService(db))}
 
-    http.HandleFunc("/", handler.LogHandler(env.handleRequest))
+    http.HandleFunc("/", middleware.LogMiddleware(env.handleRequest))
 
-    err = http.ListenAndServe(":8080", nil)
-    if err != nil {
-        log.Fatalf("not able to start the server: %s", err)
-    }
+    log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
-// NewDB creates and returns a new database connection using passed username, password, host and db name.
 func newDB(userName, userPassword, host, dbName string) (*repository.DB, error) {
     dataSource := fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", userName, userPassword, host, dbName)
     db, err := sql.Open("postgres", dataSource)
