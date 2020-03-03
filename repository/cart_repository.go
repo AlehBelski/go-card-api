@@ -6,13 +6,21 @@ import (
 	"github.com/AlehBelski/go-card-api/model"
 )
 
-type DB struct {
-	*sql.DB
+type Storage struct {
+	db *sql.DB
+}
+
+func NewStorage(db *sql.DB) *Storage {
+	return &Storage{db: db}
+}
+
+func (s Storage) DB() *sql.DB {
+	return s.db
 }
 
 // Create creates a new model.Cart record in a database.
 // It returns the newly created record as *model.Cart.
-func (db *DB) Create() (*model.Cart, error) {
+func (s *Storage) Create() (*model.Cart, error) {
 	cart := &model.Cart{}
 
 	query := `
@@ -20,7 +28,7 @@ func (db *DB) Create() (*model.Cart, error) {
     VALUES(DEFAULT)
     RETURNING id`
 
-	err := db.QueryRow(query).Scan(&cart.ID)
+	err := s.db.QueryRow(query).Scan(&cart.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -30,11 +38,11 @@ func (db *DB) Create() (*model.Cart, error) {
 }
 
 // Read reads a record from the database and returns it as *model.CardDTO.
-func (db *DB) Read(id int) (*model.Cart, error) {
+func (s *Storage) Read(id int) (*model.Cart, error) {
 	query := `
     SELECT * FROM cart_item
     WHERE fk_cart_id = $1`
-	rows, err := db.Query(query, id)
+	rows, err := s.db.Query(query, id)
 
 	if err != nil {
 		return nil, err
@@ -65,44 +73,50 @@ func (db *DB) Read(id int) (*model.Cart, error) {
 }
 
 // Update updates a record in the database related to the passed id using passed item.
-// It returns the updated record as *model.CartItem.
-func (db *DB) Update(id int, item model.CartItem) (model.CartItem, error) {
-	cartItem := model.CartItem{}
-
+// It returns the updated record as model.CartItem.
+func (s *Storage) Update(id int, item model.CartItem) (model.CartItem, error) {
 	query := `
     INSERT INTO cart_item(product, quantity, fk_cart_id)
     VALUES ($1, $2, $3)
     RETURNING id, fk_cart_id;`
 
-	err := db.QueryRow(query, item.Product, item.Quantity, id).
-		Scan(&cartItem.ID, &cartItem.CardId)
+	err := s.db.QueryRow(query, item.Product, item.Quantity, id).
+		Scan(&item.ID, &item.CardId)
 
 	if err != nil {
-		return cartItem, err
+		return item, err
 	}
 
-	return cartItem, nil
+	return item, nil
 }
 
 // Delete deletes a record from the databases by passed cart and item ids.
-func (db *DB) Delete(cartId, itemId int) error {
+func (s *Storage) Delete(cartId, itemId int) error {
 	query := `
     DELETE FROM cart_item
     WHERE fk_cart_id = $1 AND id = $2`
 
-	db.QueryRow(query, cartId, itemId)
+	rows, err := s.db.Query(query, cartId, itemId)
+
+	if err != nil {
+		return err
+	}
+
+	if err = rows.Close(); err != nil {
+		return err
+	}
 
 	return nil
 }
 
 // IsCardExists verify that a model.Cart object with the specified id presence into a database.
-func (db *DB) IsCartExists(id int) (bool, error) {
+func (s *Storage) IsCartExists(id int) (bool, error) {
 	query := `
     SELECT 1 FROM cart
     WHERE id = $1`
 
 	var isExist bool
-	err := db.QueryRow(query, id).Scan(&isExist)
+	err := s.db.QueryRow(query, id).Scan(&isExist)
 
 	if err != nil {
 		return false, err
@@ -112,13 +126,13 @@ func (db *DB) IsCartExists(id int) (bool, error) {
 }
 
 // IsCardExists verify that a model.CartItem object with the specified cartId and itemId presence into a database.
-func (db *DB) IsCartItemExists(cartId, itemId int) (bool, error) {
+func (s *Storage) IsCartItemExists(cartId, itemId int) (bool, error) {
 	query := `
     SELECT 1 FROM cart_item
     WHERE fk_cart_id = $1 AND id = $2`
 
 	var isExist bool
-	err := db.QueryRow(query, cartId, itemId).Scan(&isExist)
+	err := s.db.QueryRow(query, cartId, itemId).Scan(&isExist)
 
 	if err != nil {
 		return false, err

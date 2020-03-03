@@ -31,7 +31,7 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
-func newDB(userName, userPassword, host, dbName string) (*repository.DB, error) {
+func newDB(userName, userPassword, host, dbName string) (*repository.Storage, error) {
 	dataSource := fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", userName, userPassword, host, dbName)
 	db, err := sql.Open("postgres", dataSource)
 	if err != nil {
@@ -40,16 +40,16 @@ func newDB(userName, userPassword, host, dbName string) (*repository.DB, error) 
 	if err = db.Ping(); err != nil {
 		return nil, err
 	}
-	return &repository.DB{DB: db}, nil
+	return repository.NewStorage(db), nil
 }
 
-func initDb(db *repository.DB) {
+func initDb(s *repository.Storage) {
 	query := `
     CREATE TABLE IF NOT EXISTS cart (
         id SERIAL PRIMARY KEY
     );`
 
-	db.QueryRow(query)
+	s.DB().QueryRow(query)
 
 	query = `
     CREATE TABLE IF NOT EXISTS cart_item (
@@ -59,7 +59,7 @@ func initDb(db *repository.DB) {
         fk_cart_id INT REFERENCES cart(id)
     );`
 
-	db.QueryRow(query)
+	s.DB().QueryRow(query)
 }
 
 func (env Env) handleRequest(writer http.ResponseWriter, request *http.Request) {
