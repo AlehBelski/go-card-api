@@ -11,7 +11,7 @@ import (
 func TestStorage_Create(t *testing.T) {
 	assertion := assert.New(t)
 
-	expectedCart := &model.Cart{
+	expectedCart := model.Cart{
 		ID:    123,
 		Items: []model.CartItem{},
 	}
@@ -20,7 +20,7 @@ func TestStorage_Create(t *testing.T) {
 
 	db, sqlMock, err := sqlmock.New()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	sqlMock.ExpectQuery(expectedQuery).
@@ -32,7 +32,7 @@ func TestStorage_Create(t *testing.T) {
 	actualCart, err := storage.Create()
 
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	assertion.EqualValues(expectedCart, actualCart)
@@ -43,21 +43,21 @@ func TestStorage_Read(t *testing.T) {
 
 	item := model.CartItem{
 		ID:       1,
-		CardId:   123,
+		CartID:   123,
 		Product:  "Shoes",
 		Quantity: 10,
 	}
 
-	expectedCart := &model.Cart{
+	expectedCart := model.Cart{
 		ID:    123,
 		Items: []model.CartItem{item},
 	}
 
-	expectedQuery := "SELECT \\* FROM cart_item WHERE fk_cart_id = *"
+	expectedQuery := "SELECT \\* FROM cart_item WHERE *"
 
 	db, sqlMock, err := sqlmock.New()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	rows := sqlmock.NewRows([]string{"id", "product", "quantity", "fk_cart_id"}).
@@ -72,7 +72,7 @@ func TestStorage_Read(t *testing.T) {
 	actualCart, err := storage.Read(123)
 
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	assertion.EqualValues(expectedCart, actualCart)
@@ -90,14 +90,14 @@ func TestStorage_Update(t *testing.T) {
 
 	expectedCartItem := model.CartItem{
 		ID:       1,
-		CardId:   123,
+		CartID:   123,
 		Product:  "Shoes",
 		Quantity: 10,
 	}
 
 	db, sqlMock, err := sqlmock.New()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	rows := sqlmock.NewRows([]string{"id", "fk_cart_id"}).
@@ -112,7 +112,7 @@ func TestStorage_Update(t *testing.T) {
 	actualCartItem, err := storage.Update(123, itemToUpdate)
 
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	assertion.EqualValues(expectedCartItem, actualCartItem)
@@ -121,11 +121,11 @@ func TestStorage_Update(t *testing.T) {
 func TestStorage_Delete(t *testing.T) {
 	assertion := assert.New(t)
 
-	expectedQuery := "DELETE FROM cart_item WHERE fk_cart_id = .+ AND id = .+"
+	expectedQuery := "DELETE FROM cart_item WHERE *"
 
 	db, sqlMock, err := sqlmock.New()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	sqlMock.ExpectQuery(expectedQuery).
@@ -137,7 +137,7 @@ func TestStorage_Delete(t *testing.T) {
 	err = storage.Delete(123, 1)
 
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	assertion.Nil(err)
@@ -146,11 +146,11 @@ func TestStorage_Delete(t *testing.T) {
 func TestStorage_IsCartExists(t *testing.T) {
 	assertion := assert.New(t)
 
-	expectedQuery := "SELECT 1 FROM cart WHERE id = .+"
+	expectedQuery := "SELECT 1 FROM cart WHERE *"
 
 	db, sqlMock, err := sqlmock.New()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	sqlMock.ExpectQuery(expectedQuery).
@@ -162,7 +162,7 @@ func TestStorage_IsCartExists(t *testing.T) {
 	isExists, err := storage.IsCartExists(1)
 
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	assertion.True(isExists)
@@ -171,11 +171,11 @@ func TestStorage_IsCartExists(t *testing.T) {
 func TestStorage_IsCartItemExists(t *testing.T) {
 	assertion := assert.New(t)
 
-	expectedQuery := "SELECT 1 FROM cart_item WHERE fk_cart_id = .+ AND id = .+"
+	expectedQuery := "SELECT 1 FROM cart_item WHERE *"
 
 	db, sqlMock, err := sqlmock.New()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	sqlMock.ExpectQuery(expectedQuery).

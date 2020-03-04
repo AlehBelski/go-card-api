@@ -8,17 +8,24 @@ import (
 	"strings"
 
 	"github.com/AlehBelski/go-card-api/model"
-	"github.com/AlehBelski/go-card-api/service"
 )
 
-// CartController provides functionality to handle incoming requests
-// for CRUD operations on model.Cart object
-type CartController struct {
-	service service.CartService
+// Service represent an interface to perform CRUD operations model.Cart object.
+type Service interface {
+	Create() (model.Cart, error)
+	Read(ID int) (model.Cart, error)
+	Update(ID int, item model.CartItem) (model.CartItem, error)
+	DeleteItem(cartID, itemID int) error
 }
 
-// NewCartController creates new CartController object using passed service.CartService object.
-func NewCartController(service service.CartService) CartController {
+// CartController provIDes functionality to handle incoming requests
+// for CRUD operations on model.Cart object
+type CartController struct {
+	service Service
+}
+
+// NewCartController creates new CartController object using passed service.CartServiceImpl object.
+func NewCartController(service Service) CartController {
 	return CartController{service: service}
 }
 
@@ -39,16 +46,16 @@ func (c CartController) HandleCreate(writer http.ResponseWriter, _ *http.Request
 }
 
 // HandleRead handles incoming request to read a model.CartDTO item.
-// It retrieves the id parameters form the request URI and passed it to the next function.
+// It retrieves the ID parameters form the request URI and passed it to the next function.
 // Returns the result as json string.
 func (c CartController) HandleRead(writer http.ResponseWriter, request *http.Request) error {
-	id, err := strconv.Atoi(strings.Split(request.RequestURI, "/")[2])
+	ID, err := strconv.Atoi(strings.Split(request.URL.Path, "/")[2])
 
 	if err != nil {
 		return err
 	}
 
-	cart, err := c.service.Read(id)
+	cart, err := c.service.Read(ID)
 
 	if err != nil {
 		return err
@@ -58,11 +65,11 @@ func (c CartController) HandleRead(writer http.ResponseWriter, request *http.Req
 }
 
 // HandleUpdate handles incoming request to update a model.CartItemDTO item.
-// It retrieves the id parameters form the request URI and passed it to the next function together with request body.
+// It retrieves the ID parameters form the request URI and passed it to the next function together with request body.
 // Returns the result as json string.
 func (c CartController) HandleUpdate(writer http.ResponseWriter, request *http.Request) error {
 	item := model.CartItem{}
-	id, err := strconv.Atoi(strings.Split(request.RequestURI, "/")[2])
+	ID, err := strconv.Atoi(strings.Split(request.URL.Path, "/")[2])
 
 	if err != nil {
 		return err
@@ -74,7 +81,7 @@ func (c CartController) HandleUpdate(writer http.ResponseWriter, request *http.R
 		return err
 	}
 
-	item, err = c.service.Update(id, item)
+	item, err = c.service.Update(ID, item)
 
 	if err != nil {
 		return err
@@ -85,18 +92,18 @@ func (c CartController) HandleUpdate(writer http.ResponseWriter, request *http.R
 
 // HandleRemove handle incoming request to remove the specified model.CartItemDTO in the model.CartDTO.
 func (c CartController) HandleRemove(writer http.ResponseWriter, request *http.Request) error {
-	params := strings.Split(request.RequestURI, "/")
-	cartId, err := strconv.Atoi(params[2])
+	params := strings.Split(request.URL.Path, "/")
+	cartID, err := strconv.Atoi(params[2])
 
 	if err != nil {
 		return err
 	}
 
-	itemId, err := strconv.Atoi(params[4])
+	itemID, err := strconv.Atoi(params[4])
 
 	if err != nil {
 		return err
 	}
 
-	return c.service.Delete(cartId, itemId)
+	return c.service.DeleteItem(cartID, itemID)
 }
