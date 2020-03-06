@@ -91,7 +91,7 @@ func (c CartController) HandleUpdate(writer http.ResponseWriter, request *http.R
 }
 
 // HandleRemove handle incoming request to remove the specified model.CartItemDTO in the model.CartDTO.
-func (c CartController) HandleRemove(writer http.ResponseWriter, request *http.Request) error {
+func (c CartController) HandleRemove(_ http.ResponseWriter, request *http.Request) error {
 	params := strings.Split(request.URL.Path, "/")
 	cartID, err := strconv.Atoi(params[2])
 

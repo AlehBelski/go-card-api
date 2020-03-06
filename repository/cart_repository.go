@@ -6,14 +6,17 @@ import (
 	"github.com/AlehBelski/go-card-api/model"
 )
 
+// Storage contains link to *sql.DB and allow to execute the queries under the database.
 type Storage struct {
 	db *sql.DB
 }
 
+// NewStorage creates new instance of Storage with passed *sql.DB as the argument.
 func NewStorage(db *sql.DB) Storage {
 	return Storage{db: db}
 }
 
+// QueryRow executes a query that is expected to return at most one row.
 func (s Storage) QueryRow(query string) {
 	s.db.QueryRow(query)
 }

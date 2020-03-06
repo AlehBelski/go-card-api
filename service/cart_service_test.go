@@ -4,49 +4,9 @@ import (
 	"testing"
 
 	"github.com/AlehBelski/go-card-api/model"
+	"github.com/AlehBelski/go-card-api/service/mocks"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
-
-type CartRepositoryMock struct {
-	mock.Mock
-}
-
-func (c *CartRepositoryMock) Create() (model.Cart, error) {
-	args := c.Called()
-
-	return args.Get(0).(model.Cart), args.Error(1)
-}
-
-func (c *CartRepositoryMock) Read(ID int) (model.Cart, error) {
-	args := c.Called(ID)
-
-	return args.Get(0).(model.Cart), args.Error(1)
-}
-
-func (c *CartRepositoryMock) Update(ID int, item model.CartItem) (model.CartItem, error) {
-	args := c.Called(ID, item)
-
-	return args.Get(0).(model.CartItem), args.Error(1)
-}
-
-func (c *CartRepositoryMock) Delete(cartID, itemID int) error {
-	args := c.Called(cartID, itemID)
-
-	return args.Error(0)
-}
-
-func (c *CartRepositoryMock) IsCartExists(ID int) (bool, error) {
-	args := c.Called(ID)
-
-	return args.Bool(0), args.Error(1)
-}
-
-func (c *CartRepositoryMock) IsCartItemExists(cardID, itemID int) (bool, error) {
-	args := c.Called(cardID, itemID)
-
-	return args.Bool(0), args.Error(1)
-}
 
 func TestCartService_Create(t *testing.T) {
 	assertion := assert.New(t)
@@ -56,7 +16,7 @@ func TestCartService_Create(t *testing.T) {
 		Items: []model.CartItem{},
 	}
 
-	cartRepository := new(CartRepositoryMock)
+	cartRepository := new(mocks.CartRepository)
 
 	cartRepository.On("Create").Return(expectedCart, nil)
 
@@ -79,7 +39,7 @@ func TestCartService_Read(t *testing.T) {
 		Items: []model.CartItem{},
 	}
 
-	cartRepository := new(CartRepositoryMock)
+	cartRepository := new(mocks.CartRepository)
 
 	cartRepository.On("IsCartExists", ID).Return(true, nil)
 	cartRepository.On("Read", expectedCart.ID).Return(expectedCart, nil)
@@ -110,7 +70,7 @@ func TestCartService_Update(t *testing.T) {
 		Quantity: itemToUpdate.Quantity,
 	}
 
-	cartRepository := new(CartRepositoryMock)
+	cartRepository := new(mocks.CartRepository)
 
 	cartRepository.On("IsCartExists", ID).Return(true, nil)
 	cartRepository.On("Update", ID, itemToUpdate).Return(expectedCartItem, nil)
@@ -128,7 +88,7 @@ func TestCartService_Update(t *testing.T) {
 func TestCartService_Delete(t *testing.T) {
 	assertion := assert.New(t)
 
-	cartRepository := new(CartRepositoryMock)
+	cartRepository := new(mocks.CartRepository)
 
 	cartRepository.On("IsCartExists", 123).Return(true, nil)
 	cartRepository.On("IsCartItemExists", 123, 456).Return(true, nil)

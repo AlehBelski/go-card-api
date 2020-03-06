@@ -6,39 +6,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/AlehBelski/go-card-api/controller/mocks"
+
 	"github.com/stretchr/testify/assert"
 
 	"github.com/AlehBelski/go-card-api/model"
-	"github.com/stretchr/testify/mock"
 )
-
-type CartServiceMock struct {
-	mock.Mock
-}
-
-func (srv *CartServiceMock) Create() (model.Cart, error) {
-	args := srv.Called()
-
-	return args.Get(0).(model.Cart), args.Error(1)
-}
-
-func (srv *CartServiceMock) Read(id int) (model.Cart, error) {
-	args := srv.Called(id)
-
-	return args.Get(0).(model.Cart), args.Error(1)
-}
-
-func (srv *CartServiceMock) Update(id int, item model.CartItem) (model.CartItem, error) {
-	args := srv.Called(id, item)
-
-	return args.Get(0).(model.CartItem), args.Error(1)
-}
-
-func (srv *CartServiceMock) DeleteItem(cartId, itemId int) error {
-	args := srv.Called(cartId, itemId)
-
-	return args.Error(0)
-}
 
 func TestCartController_HandleCreate(t *testing.T) {
 	assertion := assert.New(t)
@@ -50,7 +23,7 @@ func TestCartController_HandleCreate(t *testing.T) {
 
 	expectedBodeResponse := `{"ID":1,"Items":[]}`
 
-	serviceMock := new(CartServiceMock)
+	serviceMock := new(mocks.Service)
 	serviceMock.On("Create").Return(expectedCart, nil)
 
 	c := NewCartController(serviceMock)
@@ -86,7 +59,7 @@ func TestCartController_HandleRead(t *testing.T) {
 
 	expectedBodeResponse := `{"ID":123,"Items":[]}`
 
-	serviceMock := new(CartServiceMock)
+	serviceMock := new(mocks.Service)
 	serviceMock.On("Read", 123).Return(expectedCart, nil)
 
 	c := NewCartController(serviceMock)
@@ -129,7 +102,7 @@ func TestCartController_HandleUpdate(t *testing.T) {
 
 	expectedBodeResponse := `{"ID":1,"CartID":123,"Product":"Shoes","Quantity":10}`
 
-	serviceMock := new(CartServiceMock)
+	serviceMock := new(mocks.Service)
 	serviceMock.On("Update", 123, itemToUpdate).Return(expectedCartItem, nil)
 
 	c := NewCartController(serviceMock)
@@ -158,7 +131,7 @@ func TestCartController_HandleUpdate(t *testing.T) {
 func TestCartController_HandleRemove(t *testing.T) {
 	assertion := assert.New(t)
 
-	serviceMock := new(CartServiceMock)
+	serviceMock := new(mocks.Service)
 	serviceMock.On("DeleteItem", 123, 1).Return(nil)
 
 	c := NewCartController(serviceMock)
