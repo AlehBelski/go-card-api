@@ -1,3 +1,5 @@
+// Package middleware provides the middleware functions that add
+// additional behavior over basic handle functions.
 package middleware
 
 import (

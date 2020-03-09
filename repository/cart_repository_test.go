@@ -11,10 +11,7 @@ import (
 func TestStorage_Create(t *testing.T) {
 	assertion := assert.New(t)
 
-	expectedCart := model.Cart{
-		ID:    123,
-		Items: []model.CartItem{},
-	}
+	expectedCart := model.NewCart(123, []model.CartItem{})
 
 	expectedQuery := "INSERT INTO cart VALUES(DEFAULT)*"
 
@@ -41,17 +38,9 @@ func TestStorage_Create(t *testing.T) {
 func TestStorage_Read(t *testing.T) {
 	assertion := assert.New(t)
 
-	item := model.CartItem{
-		ID:       1,
-		CartID:   123,
-		Product:  "Shoes",
-		Quantity: 10,
-	}
+	item := model.NewCartItem(1, 123, "Shoes", 10)
 
-	expectedCart := model.Cart{
-		ID:    123,
-		Items: []model.CartItem{item},
-	}
+	expectedCart := model.NewCart(123, []model.CartItem{item})
 
 	expectedQuery := "SELECT \\* FROM cart_item WHERE *"
 
@@ -83,17 +72,12 @@ func TestStorage_Update(t *testing.T) {
 
 	expectedQuery := "INSERT INTO cart_item(.+) VALUES (.+)*"
 
-	itemToUpdate := model.CartItem{
-		Product:  "Shoes",
-		Quantity: 10,
-	}
+	itemToUpdate := model.CartItem{}
 
-	expectedCartItem := model.CartItem{
-		ID:       1,
-		CartID:   123,
-		Product:  "Shoes",
-		Quantity: 10,
-	}
+	itemToUpdate.SetProduct("Shoes")
+	itemToUpdate.SetQuantity(10)
+
+	expectedCartItem := model.NewCartItem(1, 123, "Shoes", 10)
 
 	db, sqlMock, err := sqlmock.New()
 	if err != nil {

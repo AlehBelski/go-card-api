@@ -1,3 +1,4 @@
+// Package service provides business logic of the application.
 package service
 
 import (
@@ -54,16 +55,20 @@ func (srv CartServiceImpl) Read(ID int) (model.Cart, error) {
 func (srv CartServiceImpl) Update(ID int, item model.CartItem) (model.CartItem, error) {
 	exists, err := srv.rep.IsCartExists(ID)
 
-	if err != nil || !exists {
+	if err != nil {
+		return item, err
+	}
+
+	if !exists {
 		return item, fmt.Errorf("specified cart %v doesn't exists", ID)
 	}
 
-	if len(strings.TrimSpace(item.Product)) == 0 {
-		return item, fmt.Errorf("product: %q name should not be blank", item.Product)
+	if len(strings.TrimSpace(item.Product())) == 0 {
+		return item, fmt.Errorf("product: %q name should not be blank", item.Product())
 	}
 
-	if item.Quantity <= 0 {
-		return item, fmt.Errorf("quantity: %q should be a positive value", item.Quantity)
+	if item.Quantity() <= 0 {
+		return item, fmt.Errorf("quantity: %q should be a positive value", item.Quantity())
 	}
 
 	return srv.rep.Update(ID, item)
@@ -74,14 +79,22 @@ func (srv CartServiceImpl) Update(ID int, item model.CartItem) (model.CartItem, 
 func (srv CartServiceImpl) DeleteItem(cardID, itemID int) error {
 	exists, err := srv.rep.IsCartExists(cardID)
 
-	if err != nil || !exists {
+	if err != nil {
+		return err
+	}
+
+	if !exists {
 		return fmt.Errorf("specified cart %v doesn't exists", cardID)
 	}
 
 	exists, err = srv.rep.IsCartItemExists(cardID, itemID)
 
-	if err != nil || !exists {
-		return fmt.Errorf("specified cart item %v doesn't exists", cardID)
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		return fmt.Errorf("specified cart item %v doesn't exists", itemID)
 	}
 
 	return srv.rep.Delete(cardID, itemID)

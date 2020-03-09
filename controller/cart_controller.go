@@ -1,3 +1,5 @@
+// Package controller provides the functions that can handle
+// CRUD operations over http methods.
 package controller
 
 import (
@@ -29,10 +31,13 @@ func NewCartController(service Service) CartController {
 	return CartController{service: service}
 }
 
-var Create = regexp.MustCompile("^/carts/?$")
-var Read = regexp.MustCompile("^/carts/[0-9]+/?$")
-var Update = regexp.MustCompile("^/carts/[0-9]+/items/?$")
-var Remove = regexp.MustCompile("^/carts/[0-9]+/items/[0-9]+?$")
+// The following values represent a group of acceptable URLs.
+var (
+	CreateURL = regexp.MustCompile("^/carts/?$")
+	ReadURL   = regexp.MustCompile("^/carts/[0-9]+/?$")
+	UpdateURL = regexp.MustCompile("^/carts/[0-9]+/items/?$")
+	RemoveURL = regexp.MustCompile("^/carts/[0-9]+/items/[0-9]+?$")
+)
 
 // HandleCreate handles incoming request to create a new model.CartDTO item and returns it as json string.
 func (c CartController) HandleCreate(writer http.ResponseWriter, _ *http.Request) error {
@@ -42,7 +47,7 @@ func (c CartController) HandleCreate(writer http.ResponseWriter, _ *http.Request
 		return err
 	}
 
-	return json.NewEncoder(writer).Encode(cart)
+	return json.NewEncoder(writer).Encode(model.NewCartJson(cart))
 }
 
 // HandleRead handles incoming request to read a model.CartDTO item.
@@ -61,33 +66,33 @@ func (c CartController) HandleRead(writer http.ResponseWriter, request *http.Req
 		return err
 	}
 
-	return json.NewEncoder(writer).Encode(cart)
+	return json.NewEncoder(writer).Encode(model.NewCartJson(cart))
 }
 
 // HandleUpdate handles incoming request to update a model.CartItemDTO item.
 // It retrieves the ID parameters form the request URI and passed it to the next function together with request body.
 // Returns the result as json string.
 func (c CartController) HandleUpdate(writer http.ResponseWriter, request *http.Request) error {
-	item := model.CartItem{}
+	jsonItem := model.CartItemJson{}
 	ID, err := strconv.Atoi(strings.Split(request.URL.Path, "/")[2])
 
 	if err != nil {
 		return err
 	}
 
-	err = json.NewDecoder(request.Body).Decode(&item)
+	err = json.NewDecoder(request.Body).Decode(&jsonItem)
 
 	if err != nil {
 		return err
 	}
 
-	item, err = c.service.Update(ID, item)
+	item, err := c.service.Update(ID, model.NewCartItemFromJson(jsonItem))
 
 	if err != nil {
 		return err
 	}
 
-	return json.NewEncoder(writer).Encode(item)
+	return json.NewEncoder(writer).Encode(model.NewCartItemJson(item))
 }
 
 // HandleRemove handle incoming request to remove the specified model.CartItemDTO in the model.CartDTO.

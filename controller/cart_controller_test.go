@@ -16,12 +16,9 @@ import (
 func TestCartController_HandleCreate(t *testing.T) {
 	assertion := assert.New(t)
 
-	expectedCart := model.Cart{
-		ID:    1,
-		Items: []model.CartItem{},
-	}
+	expectedCart := model.NewCart(1, []model.CartItem{})
 
-	expectedBodeResponse := `{"ID":1,"Items":[]}`
+	expectedBodeResponse := `{"id":1,"items":[]}`
 
 	serviceMock := new(mocks.Service)
 	serviceMock.On("Create").Return(expectedCart, nil)
@@ -52,12 +49,9 @@ func TestCartController_HandleCreate(t *testing.T) {
 func TestCartController_HandleRead(t *testing.T) {
 	assertion := assert.New(t)
 
-	expectedCart := model.Cart{
-		ID:    123,
-		Items: []model.CartItem{},
-	}
+	expectedCart := model.NewCart(123, []model.CartItem{})
 
-	expectedBodeResponse := `{"ID":123,"Items":[]}`
+	expectedBodeResponse := `{"id":123,"items":[]}`
 
 	serviceMock := new(mocks.Service)
 	serviceMock.On("Read", 123).Return(expectedCart, nil)
@@ -88,19 +82,14 @@ func TestCartController_HandleRead(t *testing.T) {
 func TestCartController_HandleUpdate(t *testing.T) {
 	assertion := assert.New(t)
 
-	itemToUpdate := model.CartItem{
-		Product:  "Shoes",
-		Quantity: 10,
-	}
+	itemToUpdate := model.CartItem{}
 
-	expectedCartItem := model.CartItem{
-		ID:       1,
-		CartID:   123,
-		Product:  "Shoes",
-		Quantity: 10,
-	}
+	itemToUpdate.SetProduct("Shoes")
+	itemToUpdate.SetQuantity(10)
 
-	expectedBodeResponse := `{"ID":1,"CartID":123,"Product":"Shoes","Quantity":10}`
+	expectedCartItem := model.NewCartItem(1, 123, "Shoes", 10)
+
+	expectedBodeResponse := `{"id":1,"cart_id":123,"product":"Shoes","quantity":10}`
 
 	serviceMock := new(mocks.Service)
 	serviceMock.On("Update", 123, itemToUpdate).Return(expectedCartItem, nil)

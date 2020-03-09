@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/AlehBelski/go-card-api/model"
@@ -11,10 +12,7 @@ import (
 func TestCartService_Create(t *testing.T) {
 	assertion := assert.New(t)
 
-	expectedCart := model.Cart{
-		ID:    123,
-		Items: []model.CartItem{},
-	}
+	expectedCart := model.NewCart(123, []model.CartItem{})
 
 	cartRepository := new(mocks.CartRepository)
 
@@ -30,28 +28,39 @@ func TestCartService_Create(t *testing.T) {
 	cartRepository.AssertExpectations(t)
 }
 
+var readTests = []struct {
+	ID       int
+	isExists bool
+	out      model.Cart
+	err      error
+}{
+	{123, true, model.NewCart(123, []model.CartItem{}), nil},
+	{444, false, model.Cart{}, errors.New("specified cart 444 doesn't exists")},
+}
+
 func TestCartService_Read(t *testing.T) {
 	assertion := assert.New(t)
 
-	ID := 123
-	expectedCart := model.Cart{
-		ID:    ID,
-		Items: []model.CartItem{},
+	for _, v := range readTests {
+		t.Run("test read function", func(t *testing.T) {
+			cartRepository := new(mocks.CartRepository)
+
+			cartRepository.On("IsCartExists", v.ID).Return(v.isExists, nil)
+
+			if v.isExists {
+				cartRepository.On("Read", v.ID).Return(v.out, v.err)
+			}
+
+			cartService := NewCartService(cartRepository)
+
+			actualCart, err := cartService.Read(v.ID)
+
+			assertion.Equal(v.err, err)
+			assertion.EqualValues(v.out, actualCart)
+
+			cartRepository.AssertExpectations(t)
+		})
 	}
-
-	cartRepository := new(mocks.CartRepository)
-
-	cartRepository.On("IsCartExists", ID).Return(true, nil)
-	cartRepository.On("Read", expectedCart.ID).Return(expectedCart, nil)
-
-	cartService := NewCartService(cartRepository)
-
-	actualCart, err := cartService.Read(expectedCart.ID)
-
-	assertion.Nil(err)
-	assertion.EqualValues(expectedCart, actualCart)
-
-	cartRepository.AssertExpectations(t)
 }
 
 func TestCartService_Update(t *testing.T) {
@@ -59,16 +68,16 @@ func TestCartService_Update(t *testing.T) {
 
 	ID := 123
 
-	itemToUpdate := model.CartItem{
-		Product:  "Shoes",
-		Quantity: 100,
-	}
+	itemToUpdate := model.CartItem{}
 
-	expectedCartItem := model.CartItem{
-		CartID:   ID,
-		Product:  itemToUpdate.Product,
-		Quantity: itemToUpdate.Quantity,
-	}
+	itemToUpdate.SetProduct("Shoes")
+	itemToUpdate.SetQuantity(100)
+
+	expectedCartItem := model.CartItem{}
+
+	expectedCartItem.SetID(ID)
+	expectedCartItem.SetProduct(itemToUpdate.Product())
+	expectedCartItem.SetQuantity(itemToUpdate.Quantity())
 
 	cartRepository := new(mocks.CartRepository)
 
@@ -85,20 +94,43 @@ func TestCartService_Update(t *testing.T) {
 	cartRepository.AssertExpectations(t)
 }
 
+var deleteTests = []struct {
+	cartID           int
+	isCartExists     bool
+	itemID           int
+	isCartItemExists bool
+	err              error
+}{
+	{123, true, 456, true, nil},
+	{123, true, 444, false, errors.New("specified cart item 444 doesn't exists")},
+	{444, false, 444, true, errors.New("specified cart 444 doesn't exists")},
+}
+
 func TestCartService_Delete(t *testing.T) {
 	assertion := assert.New(t)
 
-	cartRepository := new(mocks.CartRepository)
+	for _, v := range deleteTests {
+		t.Run("test delete function", func(t *testing.T) {
+			cartRepository := new(mocks.CartRepository)
 
-	cartRepository.On("IsCartExists", 123).Return(true, nil)
-	cartRepository.On("IsCartItemExists", 123, 456).Return(true, nil)
-	cartRepository.On("Delete", 123, 456).Return(nil)
+			cartRepository.On("IsCartExists", v.cartID).Return(v.isCartExists, nil)
 
-	cartService := CartServiceImpl{rep: cartRepository}
+			if v.isCartExists {
+				cartRepository.On("IsCartItemExists", v.cartID, v.itemID).Return(v.isCartItemExists, nil)
+			}
 
-	err := cartService.DeleteItem(123, 456)
+			if v.isCartExists && v.isCartItemExists {
+				cartRepository.On("Delete", v.cartID, v.itemID).Return(v.err)
+			}
 
-	assertion.Nil(err)
+			cartService := CartServiceImpl{rep: cartRepository}
 
-	cartRepository.AssertExpectations(t)
+			err := cartService.DeleteItem(v.cartID, v.itemID)
+
+			assertion.Equal(v.err, err)
+
+			cartRepository.AssertExpectations(t)
+		})
+	}
+
 }

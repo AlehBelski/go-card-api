@@ -31,8 +31,8 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
-func newDB(userName, userPassword, host, dbName string) (repository.Storage, error) {
-	storage := repository.Storage{}
+func newDB(userName, userPassword, host, dbName string) (repository.CartRepositoryImpl, error) {
+	storage := repository.CartRepositoryImpl{}
 	dataSource := fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", userName, userPassword, host, dbName)
 	db, err := sql.Open("postgres", dataSource)
 	if err != nil {
@@ -45,7 +45,7 @@ func newDB(userName, userPassword, host, dbName string) (repository.Storage, err
 	return storage, nil
 }
 
-func initDb(s repository.Storage) {
+func initDb(s repository.CartRepositoryImpl) {
 	query := `
     CREATE TABLE IF NOT EXISTS cart (
         id SERIAL PRIMARY KEY
@@ -66,13 +66,13 @@ func initDb(s repository.Storage) {
 
 func (env Env) handleRequest(writer http.ResponseWriter, request *http.Request) {
 	switch {
-	case controller.Create.MatchString(request.RequestURI) && request.Method == http.MethodPost:
+	case controller.CreateURL.MatchString(request.RequestURI) && request.Method == http.MethodPost:
 		handleOperation(env.controller.HandleCreate, writer, request)
-	case controller.Read.MatchString(request.RequestURI) && request.Method == http.MethodGet:
+	case controller.ReadURL.MatchString(request.RequestURI) && request.Method == http.MethodGet:
 		handleOperation(env.controller.HandleRead, writer, request)
-	case controller.Update.MatchString(request.RequestURI) && request.Method == http.MethodPost:
+	case controller.UpdateURL.MatchString(request.RequestURI) && request.Method == http.MethodPost:
 		handleOperation(env.controller.HandleUpdate, writer, request)
-	case controller.Remove.MatchString(request.RequestURI) && request.Method == http.MethodDelete:
+	case controller.RemoveURL.MatchString(request.RequestURI) && request.Method == http.MethodDelete:
 		handleOperation(env.controller.HandleRemove, writer, request)
 	default:
 		http.Error(writer, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
