@@ -1,0 +1,29 @@
+version: "3"
+services:
+  postgres:
+    image: postgres:latest
+    restart: on-failure
+    container_name: pstgr
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=postgres
+    volumes:
+      - database_postgres:/var/lib/postgresql/data
+  # APP*****************************************
+  goapp:
+    image: card-api-go:latest
+    build: .
+    restart: on-failure
+    container_name: goapp
+    expose:
+      - 8080
+    ports:
+      - 8080:8080
+    depends_on:
+      - postgres
+
+volumes:
+  database_postgres:
