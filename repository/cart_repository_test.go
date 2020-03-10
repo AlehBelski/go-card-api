@@ -1,30 +1,46 @@
 package repository
 
 import (
+	"database/sql"
+	"fmt"
 	"testing"
 
-	"github.com/AlehBelski/go-card-api/model"
 	"github.com/DATA-DOG/go-sqlmock"
+
+	"github.com/AlehBelski/go-card-api/model"
+	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestStorage_Create(t *testing.T) {
+//todo redone
+func newDB(userName, userPassword, host, dbName string) (CartRepositoryImpl, error) {
+	storage := CartRepositoryImpl{}
+	dataSource := fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", userName, userPassword, host, dbName)
+	db, err := sql.Open("postgres", dataSource)
+	if err != nil {
+		return storage, err
+	}
+	if err = db.Ping(); err != nil {
+		return storage, err
+	}
+	storage = NewStorage(db)
+	return storage, nil
+}
+
+//fixme host not found?
+func TestStorage_CreateIntegration(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skip TestStorage_CreateIntegration")
+	}
 	assertion := assert.New(t)
 
-	expectedCart := model.NewCart(123, []model.CartItem{})
+	expectedCart := model.NewCart(1, []model.CartItem{})
 
-	expectedQuery := "INSERT INTO cart VALUES(DEFAULT)*"
+	storage, err := newDB("postgres", "postgres", "pstgr", "postgres")
 
-	db, sqlMock, err := sqlmock.New()
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	sqlMock.ExpectQuery(expectedQuery).
-		WillReturnRows(sqlmock.NewRows([]string{"id"}).
-			FromCSVString("123"))
-
-	storage := NewStorage(db)
 
 	actualCart, err := storage.Create()
 
@@ -35,7 +51,10 @@ func TestStorage_Create(t *testing.T) {
 	assertion.EqualValues(expectedCart, actualCart)
 }
 
-func TestStorage_Read(t *testing.T) {
+func TestStorage_ReadIntegration(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skip TestStorage_CreateIntegration")
+	}
 	assertion := assert.New(t)
 
 	item := model.NewCartItem(1, 123, "Shoes", 10)
@@ -67,7 +86,10 @@ func TestStorage_Read(t *testing.T) {
 	assertion.EqualValues(expectedCart, actualCart)
 }
 
-func TestStorage_Update(t *testing.T) {
+func TestStorage_UpdateIntegration(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skip TestStorage_CreateIntegration")
+	}
 	assertion := assert.New(t)
 
 	expectedQuery := "INSERT INTO cart_item(.+) VALUES (.+)*"
@@ -102,7 +124,10 @@ func TestStorage_Update(t *testing.T) {
 	assertion.EqualValues(expectedCartItem, actualCartItem)
 }
 
-func TestStorage_Delete(t *testing.T) {
+func TestStorage_DeleteIntegration(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skip TestStorage_CreateIntegration")
+	}
 	assertion := assert.New(t)
 
 	expectedQuery := "DELETE FROM cart_item WHERE *"
@@ -127,7 +152,10 @@ func TestStorage_Delete(t *testing.T) {
 	assertion.Nil(err)
 }
 
-func TestStorage_IsCartExists(t *testing.T) {
+func TestStorage_IsCartExistsIntegration(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skip TestStorage_CreateIntegration")
+	}
 	assertion := assert.New(t)
 
 	expectedQuery := "SELECT 1 FROM cart WHERE *"
@@ -152,7 +180,10 @@ func TestStorage_IsCartExists(t *testing.T) {
 	assertion.True(isExists)
 }
 
-func TestStorage_IsCartItemExists(t *testing.T) {
+func TestStorage_IsCartItemExistsIntegration(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skip TestStorage_CreateIntegration")
+	}
 	assertion := assert.New(t)
 
 	expectedQuery := "SELECT 1 FROM cart_item WHERE *"
