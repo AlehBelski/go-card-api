@@ -18,11 +18,10 @@ type Env struct {
 }
 
 func main() {
-	db, err := newDB("postgres", "postgres", "localhost", "postgres")
+	db, err := newDB("postgres", "postgres", "pstgr", "postgres")
 	if err != nil {
 		panic(err)
 	}
-	initDb(db)
 
 	env := Env{controller.NewCartController(service.NewCartService(db))}
 
@@ -43,25 +42,6 @@ func newDB(userName, userPassword, host, dbName string) (repository.CartReposito
 	}
 	storage = repository.NewStorage(db)
 	return storage, nil
-}
-
-func initDb(s repository.CartRepositoryImpl) {
-	query := `
-    CREATE TABLE IF NOT EXISTS cart (
-        id SERIAL PRIMARY KEY
-    );`
-
-	s.QueryRow(query)
-
-	query = `
-    CREATE TABLE IF NOT EXISTS cart_item (
-        id SERIAL PRIMARY KEY,
-        product TEXT NOT NULL,
-        quantity INT NOT NULL,
-        fk_cart_id INT REFERENCES cart(id)
-    );`
-
-	s.QueryRow(query)
 }
 
 func (env Env) handleRequest(writer http.ResponseWriter, request *http.Request) {
